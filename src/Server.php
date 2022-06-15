@@ -546,6 +546,7 @@ class Server
   `title` varchar(100) NOT NULL DEFAULT '' COMMENT '任务标题',
   `type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '任务类型 (1 command, 2 class, 3 url, 4 eval)',
   `rule` varchar(100) NOT NULL DEFAULT '' COMMENT '任务执行表达式',
+   `rule_params` varchar(255) NOT NULL DEFAULT '' COMMENT '任务执行表达式的字段',
   `target` varchar(150) NOT NULL DEFAULT '' COMMENT '调用任务字符串',
   `parameter` varchar(500) NOT NULL DEFAULT '' COMMENT '任务调用参数',
   `running_times` int(11) NOT NULL DEFAULT '0' COMMENT '已运行次数',
