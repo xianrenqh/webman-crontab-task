@@ -14,6 +14,7 @@ use Workerman\Worker;
  */
 class Server
 {
+
     const FORBIDDEN_STATUS = '0';
 
     const NORMAL_STATUS = '1';
@@ -29,9 +30,7 @@ class Server
     //shell 任务
     public const SHELL_CRONTAB = '5';
 
-
     private Worker $worker;
-
 
     /**
      * 调试模式
@@ -61,7 +60,6 @@ class Server
     {
     }
 
-
     public function onWorkerStart($worker)
     {
         $config                = config('plugin.xianrenqh.task.app.task');
@@ -79,13 +77,13 @@ class Server
      * 每个连接只会触发一次onConnect回调
      * 此时客户端还没有发来任何数据
      * 由于udp是无连接的，所以当使用udp时不会触发onConnect回调，也不会触发onClose回调
+     *
      * @param TcpConnection $connection
      */
     public function onConnect(TcpConnection $connection)
     {
         $this->checkCrontabTables();
     }
-
 
     public function onMessage(TcpConnection $connection, $data)
     {
@@ -95,10 +93,11 @@ class Server
         $connection->send(call_user_func([$this, $method], $args));
     }
 
-
     /**
      * 定时器列表
+     *
      * @param array $data
+     *
      * @return false|string
      */
     private function crontabIndex(array $data)
@@ -106,10 +105,7 @@ class Server
         $limit = $data['limit'] ?? 15;
         $page  = $data['page'] ?? 1;
         $where = $data['where'] ?? [];
-        $data  = Db::table($this->crontabTable)
-            ->where($where)
-            ->order('id', 'desc')
-            ->paginate(($page - 1) * $limit);
+        $data  = Db::table($this->crontabTable)->where($where)->order('id', 'desc')->paginate(($page - 1) * $limit);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => $data]);
     }
@@ -120,11 +116,9 @@ class Server
      */
     private function crontabInit(): void
     {
-        $ids = Db::table($this->crontabTable)
-            ->where('status', self::NORMAL_STATUS)
-            ->order('sort', 'desc')
-            ->column('id');
-        if (!empty($ids)) {
+        $ids = Db::table($this->crontabTable)->where('status', self::NORMAL_STATUS)->order('sort',
+                'desc')->column('id');
+        if ( ! empty($ids)) {
             foreach ($ids as $id) {
                 $this->crontabRun($id);
             }
@@ -133,16 +127,14 @@ class Server
 
     /**
      * 创建定时器
+     *
      * @param $id
      */
     private function crontabRun($id)
     {
-        $data = Db::table($this->crontabTable)
-            ->where('id', $id)
-            ->where('status', self::NORMAL_STATUS)
-            ->find();
+        $data = Db::table($this->crontabTable)->where('id', $id)->where('status', self::NORMAL_STATUS)->find();
 
-        if (!empty($data)) {
+        if ( ! empty($data)) {
             switch ($data['type']) {
                 case self::COMMAND_CRONTAB:
                     $this->crontabPool[$data['id']] = [
@@ -162,7 +154,7 @@ class Server
                                 if (strpos($data['target'], 'php webman') !== false) {
                                     $command = $data['target'];
                                 } else {
-                                    $command = "php webman " . $data['target'];
+                                    $command = "php webman ".$data['target'];
                                 }
                                 $exception = shell_exec($command);
                             } catch (\Throwable $e) {
@@ -173,7 +165,8 @@ class Server
 
                             $this->runInSingleton($data);
 
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
+                                $result);
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
                             $this->crontabRunLog([
@@ -224,7 +217,15 @@ class Server
                                         $code   = 1;
                                     }
                                     $exception = isset($throwable) ? $throwable->getMessage() : $res;
+                                } else {
+                                    $result    = false;
+                                    $code      = 1;
+                                    $exception = "方法或类不存在或者错误";
                                 }
+                            } else {
+                                $result    = false;
+                                $code      = 1;
+                                $exception = "方法或类不存在或者错误";
                             }
 
                             $this->runInSingleton($data);
@@ -271,7 +272,8 @@ class Server
 
                             $this->runInSingleton($data);
 
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
+                                $result);
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
                             $this->crontabRunLog([
@@ -312,7 +314,8 @@ class Server
 
                             $this->runInSingleton($data);
 
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
+                                $result);
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
                             $this->crontabRunLog([
@@ -352,7 +355,8 @@ class Server
 
                             $this->runInSingleton($data);
 
-                            $this->debug && $this->writeln('执行定时器任务#' . $data['id'] . ' ' . $data['rule'] . ' ' . $data['target'], $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
+                                $result);
                             $endTime = microtime(true);
                             Db::query("UPDATE {$this->crontabTable} SET running_times = running_times + 1, last_running_time = {$time} WHERE id = {$data['id']}");
                             $this->crontabRunLog([
@@ -373,10 +377,11 @@ class Server
         }
     }
 
-
     /**
      * 是否单次
+     *
      * @param $crontab
+     *
      * @return void
      */
     private function runInSingleton($crontab)
@@ -388,7 +393,9 @@ class Server
 
     /**
      * 记录执行日志
+     *
      * @param array $param
+     *
      * @return void
      */
     private function crontabRunLog(array $param): void
@@ -398,14 +405,15 @@ class Server
 
     /**
      * 创建定时任务
+     *
      * @param array $param
+     *
      * @return string
      */
     private function crontabCreate(array $param): string
     {
         $param['create_time'] = $param['update_time'] = time();
-        $id                   = Db::table($this->crontabTable)
-            ->insertGetId($param);
+        $id                   = Db::table($this->crontabTable)->insertGetId($param);
         $id && $this->crontabRun($id);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => ['code' => (bool)$id]]);
@@ -413,14 +421,14 @@ class Server
 
     /**
      * 修改定时器
+     *
      * @param array $param
+     *
      * @return string
      */
     private function crontabUpdate(array $param): string
     {
-        $row = Db::table($this->crontabTable)
-            ->where('id', $param['id'])
-            ->update($param);
+        $row = Db::table($this->crontabTable)->where('id', $param['id'])->update($param);
 
         if (isset($this->crontabPool[$param['id']])) {
             $this->crontabPool[$param['id']]['crontab']->destroy();
@@ -434,10 +442,11 @@ class Server
 
     }
 
-
     /**
      * 清除定时任务
+     *
      * @param array $param
+     *
      * @return string
      */
     private function crontabDelete(array $param): string
@@ -452,9 +461,7 @@ class Server
                 }
             }
 
-            $rows = Db::table($this->crontabTable)
-                ->where('id in (' . $id . ')')
-                ->delete();
+            $rows = Db::table($this->crontabTable)->where('id in ('.$id.')')->delete();
 
             return json_encode(['code' => 200, 'msg' => 'ok', 'data' => ['code' => (bool)$rows]]);
         }
@@ -464,7 +471,9 @@ class Server
 
     /**
      * 重启定时任务
+     *
      * @param array $param
+     *
      * @return string
      */
     private function crontabReload(array $param): string
@@ -476,19 +485,18 @@ class Server
                 $this->crontabPool[$id]['crontab']->destroy();
                 unset($this->crontabPool[$id]);
             }
-            Db::table($this->crontabTable)
-                ->where('id', $id)
-                ->update(['status' => self::NORMAL_STATUS]);
+            Db::table($this->crontabTable)->where('id', $id)->update(['status' => self::NORMAL_STATUS]);
             $this->crontabRun($id);
         }
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => ['code' => true]]);
     }
 
-
     /**
      * 执行日志列表
+     *
      * @param array $param
+     *
      * @return string
      */
     private function crontabLog(array $param): string
@@ -498,22 +506,20 @@ class Server
         $page  = $param['page'] ?? 1;
         $param['crontab_id'] && $where[] = ['crontab_id', '=', $param['crontab_id']];
 
-        $data = Db::table($this->crontabLogTable)
-            ->where($where)
-            ->order('id', 'desc')
-            ->paginate(($page - 1) * $limit);
+        $data = Db::table($this->crontabLogTable)->where($where)->order('id', 'desc')->paginate(($page - 1) * $limit);
 
         return json_encode(['code' => 200, 'msg' => 'ok', 'data' => $data]);
     }
 
     /**
      * 输出日志
-     * @param $msg
+     *
+     * @param      $msg
      * @param bool $isSuccess
      */
     private function writeln($msg, bool $isSuccess)
     {
-        echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . ($isSuccess ? " [Ok] " : " [Fail] ") . PHP_EOL;
+        echo '['.date('Y-m-d H:i:s').'] '.$msg.($isSuccess ? " [Ok] " : " [Fail] ").PHP_EOL;
     }
 
     /**
@@ -522,8 +528,8 @@ class Server
     private function checkCrontabTables()
     {
         $allTables = $this->getDbTables();
-        !in_array($this->crontabTable, $allTables) && $this->createCrontabTable();
-        !in_array($this->crontabLogTable, $allTables) && $this->createCrontabLogTable();
+        ! in_array($this->crontabTable, $allTables) && $this->createCrontabTable();
+        ! in_array($this->crontabLogTable, $allTables) && $this->createCrontabLogTable();
     }
 
     /**
