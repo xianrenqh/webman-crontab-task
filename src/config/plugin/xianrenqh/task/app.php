@@ -1,6 +1,6 @@
 <?php
 return [
-    'enable' => true,
+    'enable' => false,
     'task'   => [
         'listen'            => '127.0.0.1:2345',
         'crontab_table'     => 'system_crontab', //任务计划表

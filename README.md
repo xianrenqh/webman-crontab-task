@@ -18,6 +18,7 @@
 2. 更改必须使用execute方法，可以使用自定义方法【自定义方法请写到：target 后面，例如：app\\common\\crontab\\ClearLogCrontab\\test】
 3. 修复禁用、暂停、在下一分钟才生效的bug
 4. 新增任务日志设置项
+5. 插件默认关闭状态，如需启动，请在配置文件中修改enable=true
 
 ### 安装
 
