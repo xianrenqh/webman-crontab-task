@@ -31,13 +31,6 @@
 * webman/think-orm
 * guzzlehttp/guzzle
 
-#### 本应用使用前还需要安装一下依赖
-```shell
-# 定时任务程序
-composer require workerman/crontab
-# redis相关包
-composer require webman/redis-queue illuminate/redis
-```
 
 ```shell
 composer require xianrenqh/webman-crontab-task
