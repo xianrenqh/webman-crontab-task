@@ -114,7 +114,7 @@ composer require xianrenqh/webman-crontab-task
         "title": "class任务 每月1号清理所有日志",
         "type": 2,
         "rule": "0 0 1 * *",
-        "target": "app\\common\\crontab\\ClearLogCrontab",
+        "target": "app\\api\\controller\\testController\\test",
         "parameter": "",
         "running_times": 71,
         "last_running_time": 1651121710,
