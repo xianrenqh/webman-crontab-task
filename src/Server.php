@@ -75,6 +75,9 @@ class Server
         $this->crontabLogTable = $config['crontab_table_log'];
         $this->worker          = $worker;
 
+        $this->writeln("定时任务消息通道：{$config['listen']}，请注意端口是否冲突。");
+        $this->writeln("如果需要修改端口，请修改 \config\plugin\xianrenqh\\task\app.php文件。");
+
         $this->checkCrontabTables();
         $this->crontabInit();
     }
@@ -97,6 +100,7 @@ class Server
         $data   = json_decode($data, true);
         $method = $data['method'];
         $args   = $data['args'];
+        $this->debug && $this->writeln('发送重启通知');
         $connection->send(call_user_func([$this, $method], $args));
     }
 
@@ -125,6 +129,7 @@ class Server
     {
         $ids = Db::table($this->crontabTable)->where('status', self::NORMAL_STATUS)->order('sort',
             'desc')->column('id');
+        $this->debug && $this->writeln('定时器任务数：'.count($ids));
         if ( ! empty($ids)) {
             foreach ($ids as $id) {
                 $this->crontabRun($id);
@@ -174,8 +179,7 @@ class Server
                                 $exception = $e->getMessage();
                             }
 
-                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
-                                $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['target'], $result);
                             $endTime = microtime(true);
                             $this->updateRunning($data['id'], $time);
                             $this->writeLog && $this->crontabRunLog([
@@ -215,13 +219,14 @@ class Server
                                 $class  = explode('\\', $class);
                                 $method = end($class);
                                 array_pop($class);
+                                $class = array_filter($class);
                                 $class = implode('\\', $class);
                                 if (class_exists($class) && method_exists($class, $method)) {
                                     try {
                                         $result   = true;
                                         $code     = 0;
                                         $instance = Container::get($class);
-                                        if ($parameters && is_array($parameters)) {
+                                        if ( ! empty($parameters) && is_array($parameters)) {
                                             $res = $instance->{$method}(...$parameters);
                                         } else {
                                             $res = $instance->{$method}();
@@ -242,8 +247,7 @@ class Server
                                 $exception = "方法或类不存在或者错误";
                             }
 
-                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
-                                $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['target'], $result);
                             $endTime = microtime(true);
                             $this->updateRunning($data['id'], $time);
                             $this->writeLog && $this->crontabRunLog([
@@ -279,17 +283,17 @@ class Server
                             $startTime = microtime(true);
                             $client    = new \GuzzleHttp\Client();
                             try {
-                                $response = $client->get($url);
-                                $result   = $response->getStatusCode() === 200;
-                                $code     = 0;
+                                $response  = $client->get($url);
+                                $result    = $response->getStatusCode() === 200 ? true : false;
+                                $exception = strip_tags($response->getBody()->getContents());
+                                $code      = 0;
                             } catch (\Throwable $throwable) {
                                 $result    = false;
                                 $code      = 1;
                                 $exception = $throwable->getMessage();
                             }
 
-                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
-                                $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['target'], $result);
                             $endTime = microtime(true);
                             $this->updateRunning($data['id'], $time);
                             $this->writeLog && $this->crontabRunLog([
@@ -333,8 +337,7 @@ class Server
                                 $exception = $e->getMessage();
                             }
 
-                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
-                                $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['target'], $result);
                             $endTime = microtime(true);
                             $this->updateRunning($data['id'], $time);
                             $this->writeLog && $this->crontabRunLog([
@@ -377,8 +380,7 @@ class Server
                                 $exception = $throwable->getMessage();
                             }
 
-                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['rule'].' '.$data['target'],
-                                $result);
+                            $this->debug && $this->writeln('执行定时器任务#'.$data['id'].' '.$data['target'], $result);
                             $endTime = microtime(true);
                             $this->updateRunning($data['id'], $time);
                             $this->writeLog && $this->crontabRunLog([
@@ -573,7 +575,7 @@ class Server
      * @param      $msg
      * @param bool $isSuccess
      */
-    private function writeln($msg, bool $isSuccess)
+    private function writeln($msg, bool $isSuccess = true)
     {
         echo '['.date('Y-m-d H:i:s').'] '.$msg.($isSuccess ? " [Ok] " : " [Fail] ").PHP_EOL;
     }

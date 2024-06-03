@@ -22,10 +22,6 @@
 
 ### 安装
 
-```shell
-composer require xianrenqh/webman-crontab-task
-```
-
 ### 重要提示：
 
 1. windows用户 启动webman 使用 windows.php
@@ -34,6 +30,19 @@ composer require xianrenqh/webman-crontab-task
 * workerman/crontab
 * webman/think-orm
 * guzzlehttp/guzzle
+
+#### 本应用使用前还需要安装一下依赖
+```shell
+# 定时任务程序
+composer require workerman/crontab
+# redis相关包
+composer require webman/redis-queue illuminate/redis
+```
+
+```shell
+composer require xianrenqh/webman-crontab-task
+```
+
 
 ### 定时器格式说明:
 
