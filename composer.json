@@ -3,11 +3,13 @@
   "description": " dynamic crontab task plugin for webman. ",
   "keywords": ["webman", "crontab", "task"],
   "type": "library",
-  "require":{
-    "php": ">=7.4",
-    "ext-json": "*",
+  "require": {
+    "php": ">=8.1",
+    "ext-json": "*"
+  },
+  "require-dev":{
     "workerman/crontab":"^1.0",
-    "webman/think-orm":"^1.0",
+    "webman/think-orm":"^2.0",
     "guzzlehttp/guzzle": "^7.0"
   },
   "license": "MIT",

@@ -3,6 +3,7 @@
 ## 概述
 
 基于 **webman** + **TP-ORM** 的动态秒级定时任务管理，兼容 Windows 和 Linux 系统。
+> php >= 8.1
 
 ### 原项目
 
@@ -17,10 +18,15 @@
 1. 修改创建数据库时候的部分字段未设置默认值的bug
 2. 更改必须使用execute方法，可以使用自定义方法【自定义方法请写到：target 后面，例如：app\\common\\crontab\\ClearLogCrontab\\test】
 3. 修复禁用、暂停、在下一分钟才生效的bug
-4. 新增任务日志设置项
-5. 插件默认关闭状态，如需启动，请在配置文件中修改enable=true
+4. 新增立即重启功能
+5. 新增任务日志设置项
+6. 插件默认关闭状态，如需启动，请在配置文件中修改enable=true
 
 ### 安装
+
+```shell
+composer require xianrenqh/webman-crontab-task
+```
 
 ### 重要提示：
 
@@ -30,12 +36,6 @@
 * workerman/crontab
 * webman/think-orm
 * guzzlehttp/guzzle
-
-
-```shell
-composer require xianrenqh/webman-crontab-task
-```
-
 
 ### 定时器格式说明:
 
@@ -52,14 +52,8 @@ composer require xianrenqh/webman-crontab-task
 
 ## 简单使用
 
-```
-   $param = [
-     'method' => 'crontabIndex',//计划任务列表
-     'args'   => ['limit' => 10, 'page' => 1]//参数
-    ];
-   $result= xianrenqh\Task\Client::instance()->request($param);
-   return json($result);
-
+```php
+$param = [ 'method' => 'crontabIndex',//计划任务列表 'args' => ['limit' => 10, 'page' => 1]//参数 ]; $result= xianrenqh\Task\Client::instance()->request($param); return json($result);
 ```
 
 ### 任务分类
@@ -85,10 +79,10 @@ composer require xianrenqh/webman-crontab-task
 
 **args**
 
-| 参数名称  | 是否必须 | 示例  | 备注   |
-|-------|------|-----|------|
-| page  | 是    | 1   | 页码   |
-| limit | 是    | 15  | 每页条数 |
+| 参数名称  | 是否必须 | 示例 | 备注   |
+|-------|------|----|------|
+| page  | 是    | 1  | 页码   |
+| limit | 是    | 15 | 每页条数 |
 
 ### 返回数据
 
@@ -106,8 +100,8 @@ composer require xianrenqh/webman-crontab-task
         "id": 6,
         "title": "class任务 每月1号清理所有日志",
         "type": 2,
-        "rule": "0 0 1 * *",
-        "target": "app\\api\\controller\\testController\\test",
+        "rule": "0 0 1 * ",
+        "target": "app\common\crontab\ClearLogCrontab",
         "parameter": "",
         "running_times": 71,
         "last_running_time": 1651121710,
@@ -122,7 +116,7 @@ composer require xianrenqh/webman-crontab-task
         "id": 5,
         "title": "eavl任务 输出 hello world",
         "type": 4,
-        "rule": "* * * * *",
+        "rule": " * * * ",
         "target": "echo 'hello world';",
         "parameter": "",
         "running_times": 25,
@@ -138,7 +132,7 @@ composer require xianrenqh/webman-crontab-task
         "id": 3,
         "title": "url任务 打开 workerman 网站",
         "type": 3,
-        "rule": "*/20 * * * * *",
+        "rule": "/20 * * * * ",
         "target": "https://www.workerman.net/",
         "parameter": "",
         "running_times": 39,
@@ -154,7 +148,7 @@ composer require xianrenqh/webman-crontab-task
         "id": 1,
         "title": "command任务 输出 webman 版本",
         "type": 1,
-        "rule": "*/20 * * * * *",
+        "rule": "/20 * * * * *",
         "target": "version",
         "parameter": null,
         "running_times": 112,
@@ -179,16 +173,15 @@ composer require xianrenqh/webman-crontab-task
 
 **args**
 
-| 参数名称       | 是否必须 | 示例  | 备注     |
-|------------|------|-----|--------|
-| page       | 是    | 1   | 页码     |
-| limit      | 是    | 15  | 每页条数   |
-| crontab_id | 否    | 1   | 计划任务ID |
+| 参数名称       | 是否必须 | 示例 | 备注     |
+|------------|------|----|--------|
+| page       | 是    | 1  | 页码     |
+| limit      | 是    | 15 | 每页条数   |
+| crontab_id | 否    | 1  | 计划任务ID |
 
 ### 返回数据
 
 ```json
-
 {
   "code": 200,
   "msg": "ok",
@@ -245,7 +238,6 @@ composer require xianrenqh/webman-crontab-task
     ]
   }
 }
-
 ```
 
 ## 添加任务
@@ -274,8 +266,7 @@ composer require xianrenqh/webman-crontab-task
 {
   "code": 200,
   "msg": "ok",
-  "data": {
-  }
+  "data": {}
 }
 ```
 
@@ -297,8 +288,7 @@ composer require xianrenqh/webman-crontab-task
 {
   "code": 200,
   "msg": "ok",
-  "data": {
-  }
+  "data": {}
 }
 ```
 
@@ -325,32 +315,17 @@ composer require xianrenqh/webman-crontab-task
 
 ```php
 //使用类【type=2】的添加案例
- $request = [
-        'method' => 'crontabCreate',
-        'args'   => [
-            'title'  => '检测设备心跳',
-            'type'   => 2,
-            'rule'   => '*/3 * * * * *',
-            'target' => 'app\api\crontab\HeartCrontab\checkheart',
-            'status' => 1,
-            'remark' => '每3秒执行',
-        ]
-    ];
-    $result  = \xianrenqh\Task\Client::instance()->request($request);
-
-    return json($result);
-
+$request = [ 'method' => 'crontabCreate', 'args' => [ 'title' => '检测设备心跳', 'type' => 2, 'rule' => '*/3 * * * * *', 'target' => 'app\api\crontab\HeartCrontab\checkheart', 'status' => 1, 'remark' => '每3秒执行', ] ]; $result = \xianrenqh\Task\Client::instance()->request($request);
+return json($result);
 ```
 
 ### 返回数据
 
 ```json
-
 {
   "code": 200,
   "msg": "ok",
-  "data": {
-  }
+  "data": {}
 }
 ```
 
@@ -368,12 +343,39 @@ composer require xianrenqh/webman-crontab-task
 
 ### 返回数据
 
-```
+```json
 {
   "code": 200,
   "msg": "ok",
   "data": {
-  
   }
 }
 ```
+
+## 立即执行任务
+
+**method：** crontabExecuteNow
+
+### 请求参数
+
+**args**
+
+| 参数名称  | 参数类型 | 是否必须 | 示例    | 备注          |
+|-------|------|------|-------|-------------|
+| id    | text | 是    | 1     | 计划任务ID      |
+| async | bool | 否    | false | 是否异步执行，默认同步 |
+
+### 返回数据
+
+```json
+{
+  "code": 200,
+  "msg": "任务已提交执行",
+  "data": {}
+}
+```
+
+
+
+
+
