@@ -5,9 +5,7 @@
   "type": "library",
   "require": {
     "php": ">=8.1",
-    "ext-json": "*"
-  },
-  "require-dev":{
+    "ext-json": "*",
     "workerman/crontab":"^1.0",
     "webman/think-orm":"^2.0",
     "guzzlehttp/guzzle": "^7.0"
@@ -20,8 +18,8 @@
   },
   "authors": [
     {
-      "name": "yzh52521",
-      "email": "396751927@qq.com"
+      "name": "xianrenqh",
+      "email": "762229008@qq.com"
     }
   ]
 }
